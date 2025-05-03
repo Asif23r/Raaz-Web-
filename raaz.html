@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Raaz's 3D Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              dark: "#0f172a",
+              light: "#f8fafc",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap");
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+        scroll-behavior: smooth;
+      }
+
+      .dark {
+        color-scheme: dark;
+      }
+
+      #canvas-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        z-index: -1;
+      }
+
+      .section {
+        min-height: 100vh;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .glass {
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        transition: background-color 0.5s ease;
+      }
+
+      .dark .glass {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .light .glass {
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+      }
+
+      .project-card {
+        transition: transform 0.5s, box-shadow 0.5s;
+      }
+
+      .project-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+      }
+
+      .skill-item {
+        transition: transform 0.3s;
+      }
+
+      .skill-item:hover {
+        transform: scale(1.1);
+      }
+
+      .nav-link {
+        position: relative;
+      }
+
+      .nav-link::after {
+        content: "";
+        position: absolute;
+        bottom: -5px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: #60a5fa;
+        transition: width 0.3s;
+      }
+
+      .nav-link:hover::after {
+        width: 100%;
+      }
+
+      .floating {
+        animation: float 3s ease-in-out infinite;
+      }
+
+      @keyframes float {
+        0% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-20px);
+        }
+        100% {
+          transform: translateY(0px);
+        }
+      }
+
+      .progress-bar {
+        height: 8px;
+        border-radius: 4px;
+        background: linear-gradient(90deg, #60a5fa, #3b82f6);
+        transition: width 1.5s ease-in-out;
+      }
+
+      .hidden {
+        opacity: 0;
+        filter: blur(5px);
+        transform: translateY(50px);
+        transition: all 1s;
+      }
+
+      .show {
+        opacity: 1;
+        filter: blur(0);
+        transform: translateY(0);
+      }
+
+      .social-icon {
+        transition: all 0.3s ease;
+      }
+
+      .social-icon:hover {
+        transform: translateY(-5px);
+      }
+
+      .instagram-icon {
+        background: radial-gradient(
+          circle at 30% 107%,
+          #fdf497 0%,
+          #fdf497 5%,
+          #fd5949 45%,
+          #d6249f 60%,
+          #285aeb 90%
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .telegram-icon {
+        color: #0088cc;
+      }
+
+      /* Theme toggle */
+      .theme-toggle {
+        position: relative;
+        width: 60px;
+        height: 30px;
+        border-radius: 15px;
+        background-color: #3b82f6;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        overflow: hidden;
+      }
+
+      .toggle-circle {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background-color: white;
+        transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      }
+
+      .light .toggle-circle {
+        transform: translateX(30px);
+      }
+
+      .toggle-icon {
+        position: absolute;
+        transition: opacity 0.3s ease, transform 0.5s ease;
+      }
+
+      .sun-icon {
+        opacity: 0;
+        transform: rotate(-45deg) scale(0);
+      }
+
+      .moon-icon {
+        opacity: 1;
+        transform: rotate(0) scale(1);
+      }
+
+      .light .sun-icon {
+        opacity: 1;
+        transform: rotate(0) scale(1);
+      }
+
+      .light .moon-icon {
+        opacity: 0;
+        transform: rotate(45deg) scale(0);
+      }
+
+      .profile-image {
+        background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+        border-radius: 50%;
+        padding: 5px;
+      }
+
+      .profile-image-inner {
+        background-color: #0f172a;
+        border-radius: 50%;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .light .profile-image-inner {
+        background-color: #f8fafc;
+      }
+
+      /* Code snippets */
+      .code-snippet {
+        position: absolute;
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-family: "Fira Code", monospace;
+        font-size: 12px;
+        line-height: 1.5;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.5s forwards, float 5s ease-in-out infinite;
+        z-index: -1;
+        pointer-events: none;
+        max-width: 300px;
+        overflow: hidden;
+        white-space: pre-wrap;
+      }
+
+      .dark .code-snippet {
+        background: rgba(30, 41, 59, 0.8);
+        border: 1px solid rgba(71, 85, 105, 0.5);
+        color: #e2e8f0;
+      }
+
+      .light .code-snippet {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(203, 213, 225, 0.8);
+        color: #334155;
+      }
+
+      .code-keyword {
+        color: #8b5cf6;
+      }
+
+      .code-string {
+        color: #10b981;
+      }
+
+      .code-comment {
+        color: #64748b;
+      }
+
+      .code-function {
+        color: #3b82f6;
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 0.8;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fadeOut {
+        from {
+          opacity: 0.8;
+        }
+        to {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+      }
+    </style>
+  </head>
+  <body
+    class="dark:bg-dark dark:text-white light:bg-light light:text-gray-900 transition-colors duration-500"
+  >
+    <div id="canvas-container"></div>
+    <div id="code-snippets-container"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 w-full z-50 px-4 py-3 glass">
+      <div class="container mx-auto flex justify-between items-center">
+        <a href="#" class="text-2xl font-bold text-blue-400"
+          >Raaz<span class="dark:text-white light:text-gray-900">.dev</span></a
+        >
+        <div class="hidden md:flex items-center space-x-8">
+          <a
+            href="#home"
+            class="nav-link dark:text-gray-300 light:text-gray-700 hover:text-blue-500"
+            >Home</a
+          >
+          <a
+            href="#about"
+            class="nav-link dark:text-gray-300 light:text-gray-700 hover:text-blue-500"
+            >About</a
+          >
+          <a
+            href="#skills"
+            class="nav-link dark:text-gray-300 light:text-gray-700 hover:text-blue-500"
+            >Skills</a
+          >
+          <a
+            href="#projects"
+            class="nav-link dark:text-gray-300 light:text-gray-700 hover:text-blue-500"
+            >Projects</a
+          >
+          <a
+            href="#contact"
+            class="nav-link dark:text-gray-300 light:text-gray-700 hover:text-blue-500"
+            >Contact</a
+          >
+
+          <!-- Theme Toggle Button -->
+          <div id="theme-toggle" class="theme-toggle">
+            <div class="toggle-circle">
+              <svg
+                class="toggle-icon sun-icon w-4 h-4 text-yellow-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+              <svg
+                class="toggle-icon moon-icon w-4 h-4 text-white"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
+                ></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="md:hidden flex items-center space-x-4">
+          <!-- Mobile Theme Toggle -->
+          <div id="mobile-theme-toggle" class="theme-toggle">
+            <div class="toggle-circle">
+              <svg
+                class="toggle-icon sun-icon w-4 h-4 text-yellow-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+              <svg
+                class="toggle-icon moon-icon w-4 h-4 text-white"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
+                ></path>
+              </svg>
+            </div>
+          </div>
+          <button
+            id="menu-btn"
+            class="dark:text-white light:text-gray-900 text-2xl"
+          >
+            ☰
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div
+      id="mobile-menu"
+      class="fixed top-0 left-0 w-full h-screen dark:bg-gray-900 light:bg-gray-100 z-40 transform translate-x-full transition-transform duration-300"
+    >
+      <div class="flex justify-end p-4">
+        <button
+          id="close-menu"
+          class="dark:text-white light:text-gray-900 text-2xl"
+        >
+          ✕
+        </button>
+      </div>
+      <div class="flex flex-col items-center space-y-8 mt-16">
+        <a
+          href="#home"
+          class="mobile-link text-xl dark:text-white light:text-gray-900"
+          >Home</a
+        >
+        <a
+          href="#about"
+          class="mobile-link text-xl dark:text-white light:text-gray-900"
+          >About</a
+        >
+        <a
+          href="#skills"
+          class="mobile-link text-xl dark:text-white light:text-gray-900"
+          >Skills</a
+        >
+        <a
+          href="#projects"
+          class="mobile-link text-xl dark:text-white light:text-gray-900"
+          >Projects</a
+        >
+        <a
+          href="#contact"
+          class="mobile-link text-xl dark:text-white light:text-gray-900"
+          >Contact</a
+        >
+      </div>
+    </div>
+
+    <!-- Home Section -->
+    <section id="home" class="section relative">
+      <div
+        class="container mx-auto flex flex-col md:flex-row items-center justify-between"
+      >
+        <div class="md:w-1/2 mb-10 md:mb-0">
+          <h1 class="text-4xl md:text-6xl font-bold mb-4">
+            Hi, I'm <span class="text-blue-400">Raaz</span>
+          </h1>
+          <h2
+            class="text-2xl md:text-3xl dark:text-gray-300 light:text-gray-700 mb-6"
+          >
+            Web Developer & Telegram Bot Developer
+          </h2>
+          <p class="dark:text-gray-400 light:text-gray-600 mb-8 text-lg">
+            I'm a 12th standard student passionate about creating beautiful
+            websites and functional Telegram bots. Based in Patna, Bihar, India.
+          </p>
+          <div class="flex space-x-4">
+            <a
+              href="#projects"
+              class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-all"
+              >View Projects</a
+            >
+            <a
+              href="#contact"
+              class="px-6 py-3 border border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-white rounded-full transition-all"
+              >Contact Me</a
+            >
+          </div>
+
+          <!-- Social Media Links -->
+          <div class="flex space-x-4 mt-8">
+            <a
+              href="https://www.instagram.com/code_with_raaz._/"
+              target="_blank"
+              class="social-icon text-3xl"
+              title="Instagram"
+            >
+              <i class="instagram-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="32"
+                  height="32"
+                  fill="currentColor"
+                  viewBox="0 0 16 16"
+                >
+                  <path
+                    d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0h.003zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.47 2.47 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.478 2.478 0 0 1-.92-.598 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233 0-2.136.008-2.388.046-3.231.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045v.002zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92zm-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217zm0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334z"
+                  />
+                </svg>
+              </i>
+            </a>
+            <a
+              href="https://t.me/the_bot_developer"
+              target="_blank"
+              class="social-icon text-3xl"
+              title="Telegram"
+            >
+              <i class="telegram-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="32"
+                  height="32"
+                  fill="currentColor"
+                  viewBox="0 0 16 16"
+                >
+                  <path
+                    d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.287 5.906c-.778.324-2.334.994-4.666 2.01-.378.15-.577.298-.595.442-.03.243.275.339.69.47l.175.055c.408.133.958.288 1.243.294.26.006.549-.1.868-.32 2.179-1.471 3.304-2.214 3.374-2.23.05-.012.12-.026.166.016.047.041.042.12.037.141-.03.129-1.227 1.241-1.846 1.817-.193.18-.33.307-.358.336a8.154 8.154 0 0 1-.188.186c-.38.366-.664.64.015 1.088.327.216.589.393.85.571.284.194.568.387.936.629.093.06.183.125.27.187.331.236.63.448.997.414.214-.02.435-.22.547-.82.265-1.417.786-4.486.906-5.751a1.426 1.426 0 0 0-.013-.315.337.337 0 0 0-.114-.217.526.526 0 0 0-.31-.093c-.3.005-.763.166-2.984 1.09z"
+                  />
+                </svg>
+              </i>
+            </a>
+          </div>
+        </div>
+        <div class="md:w-1/2 flex justify-center">
+            <!-- yaha tujhe apna image dalna hai  -->
+          <div class="profile-image w-64 h-64 floating">
+            <div class="profile-image-inner w-full h-full">
+              <svg
+                class="w-40 h-40 dark:text-gray-300 light:text-gray-700"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce"
+      >
+        <svg
+          class="w-6 h-6 dark:text-gray-400 light:text-gray-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 14l-7 7m0 0l-7-7m7 7V3"
+          ></path>
+        </svg>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="section">
+      <div class="container mx-auto">
+        <h2 class="text-3xl md:text-4xl font-bold mb-16 text-center">
+          About <span class="text-blue-400">Me</span>
+        </h2>
+        <div class="flex flex-col md:flex-row items-center gap-10">
+          <div class="md:w-1/3 mb-8 md:mb-0">
+            <div class="w-64 h-64 mx-auto relative">
+                <!-- yaha pe bhi chyange karna hai -->
+              <div
+                class="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full"
+              ></div>
+              <div
+                class="absolute inset-2 dark:bg-gray-900 light:bg-gray-100 rounded-full flex items-center justify-center"
+              >
+                <svg
+                  class="w-32 h-32 dark:text-gray-300 light:text-gray-700"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div class="md:w-2/3 glass p-8">
+            <h3 class="text-2xl font-semibold mb-4">
+              Web & Telegram Bot Developer
+            </h3>
+            <p class="dark:text-gray-300 light:text-gray-700 mb-6">
+              I'm a 12th standard student from Patna, Bihar with a passion for
+              web development and Telegram bot creation. I've mastered 95% of
+              HTML and am currently enhancing my CSS and JavaScript skills.
+            </p>
+            <p class="dark:text-gray-300 light:text-gray-700 mb-6">
+              With 3 years of experience in developing Telegram bots for
+              students and managing groups, I've built practical solutions that
+              help students access resources and information efficiently. I've
+              also managed a library where 50+ students come daily to study,
+              giving me valuable experience in organizing educational resources.
+            </p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+              <div class="text-center">
+                <div class="text-3xl font-bold text-blue-400">3+</div>
+                <div class="dark:text-gray-400 light:text-gray-600">
+                  Years Experience
+                </div>
+              </div>
+              <div class="text-center">
+                <div class="text-3xl font-bold text-blue-400">5+</div>
+                <div class="dark:text-gray-400 light:text-gray-600">
+                  Telegram Bots
+                </div>
+              </div>
+              <div class="text-center">
+                <div class="text-3xl font-bold text-blue-400">50+</div>
+                <div class="dark:text-gray-400 light:text-gray-600">
+                  Daily Students
+                </div>
+              </div>
+              <div class="text-center">
+                <div class="text-3xl font-bold text-blue-400">∞</div>
+                <div class="dark:text-gray-400 light:text-gray-600">
+                  Enthusiasm
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="section">
+      <div class="container mx-auto">
+        <h2 class="text-3xl md:text-4xl font-bold mb-16 text-center">
+          My <span class="text-blue-400">Skills</span>
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+          <div class="glass p-8">
+            <h3 class="text-2xl font-semibold mb-6">Technical Skills</h3>
+
+            <div class="mb-6">
+              <div class="flex justify-between mb-2">
+                <span>HTML</span>
+                <span>95%</span>
+              </div>
+              <div
+                class="w-full dark:bg-gray-700 light:bg-gray-300 rounded-full h-2"
+              >
+                <div class="progress-bar" style="width: 95%"></div>
+              </div>
+              <p class="text-sm dark:text-gray-400 light:text-gray-600 mt-2">
+                Advanced knowledge of HTML5 structure, semantic elements, forms,
+                and accessibility features.
+              </p>
+            </div>
+
+            <div class="mb-6">
+              <div class="flex justify-between mb-2">
+                <span>CSS</span>
+                <span>70%</span>
+              </div>
+              <div
+                class="w-full dark:bg-gray-700 light:bg-gray-300 rounded-full h-2"
+              >
+                <div class="progress-bar" style="width: 70%"></div>
+              </div>
+              <p class="text-sm dark:text-gray-400 light:text-gray-600 mt-2">
+                Intermediate styling with CSS3, including flexbox, grid layouts,
+                animations, and responsive design.
+              </p>
+            </div>
+
+            <div class="mb-6">
+              <div class="flex justify-between mb-2">
+                <span>JavaScript</span>
+                <span>55%</span>
+              </div>
+              <div
+                class="w-full dark:bg-gray-700 light:bg-gray-300 rounded-full h-2"
+              >
+                <div class="progress-bar" style="width: 55%"></div>
+              </div>
+              <p class="text-sm dark:text-gray-400 light:text-gray-600 mt-2">
+                Growing knowledge of JavaScript fundamentals, DOM manipulation,
+                and basic interactive features.
+              </p>
+            </div>
+
+            <div class="mb-6">
+              <div class="flex justify-between mb-2">
+                <span>Telegram Bot Development</span>
+                <span>90%</span>
+              </div>
+              <div
+                class="w-full dark:bg-gray-700 light:bg-gray-300 rounded-full h-2"
+              >
+                <div class="progress-bar" style="width: 90%"></div>
+              </div>
+              <p class="text-sm dark:text-gray-400 light:text-gray-600 mt-2">
+                Expert in Telegram Bot API, creating interactive bots with
+                commands, inline queries, and media handling.
+              </p>
+            </div>
+
+            <div class="mb-6">
+              <div class="flex justify-between mb-2">
+                <span>Group Management</span>
+                <span>85%</span>
+              </div>
+              <div
+                class="w-full dark:bg-gray-700 light:bg-gray-300 rounded-full h-2"
+              >
+                <div class="progress-bar" style="width: 85%"></div>
+              </div>
+              <p class="text-sm dark:text-gray-400 light:text-gray-600 mt-2">
+                Skilled in community moderation, content organization, and
+                educational resource management.
+              </p>
+            </div>
+          </div>
+
+          <div class="glass p-8">
+            <h3 class="text-2xl font-semibold mb-6">Tools & Frameworks</h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+              <div
+                class="skill-item flex flex-col items-center p-4 dark:bg-gray-800 light:bg-white rounded-lg"
+              >
+                <div class="text-4xl mb-2">🤖</div>
+                <div class="text-center">
+                  <h4 class="font-medium">Telegram API</h4>
+                  <p class="text-sm dark:text-gray-400 light:text-gray-600">
+                    Advanced
+                  </p>
+                </div>
+              </div>
+
+              <div
+                class="skill-item flex flex-col items-center p-4 dark:bg-gray-800 light:bg-white rounded-lg"
+              >
+                <div class="text-4xl mb-2">🎨</div>
+                <div class="text-center">
+                  <h4 class="font-medium">HTML</h4>
+                  <p class="text-sm dark:text-gray-400 light:text-gray-600">
+                    Advanced
+                  </p>
+                </div>
+              </div>
+
+              <div
+                class="skill-item flex flex-col items-center p-4 dark:bg-gray-800 light:bg-white rounded-lg"
+              >
+                <div class="text-4xl mb-2">🖌️</div>
+                <div class="text-center">
+                  <h4 class="font-medium">CSS</h4>
+                  <p class="text-sm dark:text-gray-400 light:text-gray-600">
+                    Intermediate
+                  </p>
+                </div>
+              </div>
+
+              <div
+                class="skill-item flex flex-col items-center p-4 dark:bg-gray-800 light:bg-white rounded-lg"
+              >
+                <div class="text-4xl mb-2">⚙️</div>
+                <div class="text-center">
+                  <h4 class="font-medium">JavaScript</h4>
+                  <p class="text-sm dark:text-gray-400 light:text-gray-600">
+                    Learning
+                  </p>
+                </div>
+              </div>
+
+              <div
+                class="skill-item flex flex-col items-center p-4 dark:bg-gray-800 light:bg-white rounded-lg"
+              >
+                <div class="text-4xl mb-2">📚</div>
+                <div class="text-center">
+                  <h4 class="font-medium">Library Management</h4>
+                  <p class="text-sm dark:text-gray-400 light:text-gray-600">
+                    Advanced
+                  </p>
+                </div>
+              </div>
+
+              <div
+                class="skill-item flex flex-col items-center p-4 dark:bg-gray-800 light:bg-white rounded-lg"
+              >
+                <div class="text-4xl mb-2">👥</div>
+                <div class="text-center">
+                  <h4 class="font-medium">Community Building</h4>
+                  <p class="text-sm dark:text-gray-400 light:text-gray-600">
+                    Advanced
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-8">
+              <h3 class="text-xl font-semibold mb-4">Additional Skills</h3>
+              <ul
+                class="list-disc pl-5 space-y-2 dark:text-gray-300 light:text-gray-700"
+              >
+                <li>Python programming for bot development</li>
+                <li>Educational content creation and organization</li>
+                <li>Student mentoring and guidance</li>
+                <li>Resource management and scheduling</li>
+                <li>Problem-solving and technical troubleshooting</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="section">
+      <div class="container mx-auto">
+        <h2 class="text-3xl md:text-4xl font-bold mb-16 text-center">
+          My <span class="text-blue-400">Projects</span>
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <!-- Project 1 -->
+          <div class="project-card glass p-6">
+            <div
+              class="h-48 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg mb-4 flex items-center justify-center"
+            >
+              <svg
+                class="w-16 h-16 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
+                ></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Student Helper Bot</h3>
+            <p class="dark:text-gray-400 light:text-gray-600 mb-4">
+              A Telegram bot that helps students access study materials,
+              schedule reminders, and get quick answers to common questions.
+            </p>
+            <div class="flex flex-wrap gap-2 mb-4">
+              <span
+                class="px-2 py-1 dark:bg-blue-900 light:bg-blue-100 dark:text-blue-300 light:text-blue-800 rounded-full text-xs"
+                >Telegram API</span
+              >
+              <span
+                class="px-2 py-1 dark:bg-blue-900 light:bg-blue-100 dark:text-blue-300 light:text-blue-800 rounded-full text-xs"
+                >Python</span
+              >
+              <span
+                class="px-2 py-1 dark:bg-blue-900 light:bg-blue-100 dark:text-blue-300 light:text-blue-800 rounded-full text-xs"
+                >Database</span
+              >
+            </div>
+            <div class="flex justify-between">
+              <a
+                href="https://t.me/the_bot_developer"
+                class="text-blue-400 hover:text-blue-300 flex items-center"
+              >
+                <span>Contact for Demo</span>
+                <svg
+                  class="w-4 h-4 ml-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                  ></path>
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Project 2 -->
+          <div class="project-card glass p-6">
+            <div
+              class="h-48 bg-gradient-to-r from-green-500 to-teal-600 rounded-lg mb-4 flex items-center justify-center"
+            >
+              <svg
+                class="w-16 h-16 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"
+                ></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">
+              Library Management System
+            </h3>
+            <p class="dark:text-gray-400 light:text-gray-600 mb-4">
+              A digital system to track library resources, student attendance,
+              and book borrowing records.
+            </p>
+            <div class="flex flex-wrap gap-2 mb-4">
+              <span
+                class="px-2 py-1 dark:bg-blue-900 light:bg-blue-100 dark:text-blue-300 light:text-blue-800 rounded-full text-xs"
+                >HTML</span
+              >
+              <span
+                class="px-2 py-1 dark:bg-blue-900 light:bg-blue-100 dark:text-blue-300 light:text-blue-800 rounded-full text-xs"
+                >CSS</span
+              >
+              <span
+                class="px-2 py-1 dark:bg-blue-900 light:bg-blue-100 dark:text-blue-300 light:text-blue-800 rounded-full text-xs"
+                >JavaScript</span
+              >
+            </div>
+            <div class="flex justify-between">
+              <a
+                href="#"
+                class="text-blue-400 hover:text-blue-300 flex items-center"
+              >
+                <span>Project Details</span>
+                <svg
+                  class="w-4 h-4 ml-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                  ></path>
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Project 3 -->
+          <div class="project-card glass p-6">
+            <div
+              class="h-48 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-lg mb-4 flex items-center justify-center"
+            >
+              <svg
+                class="w-16 h-16 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"
+                ></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Group Discussion Bot</h3>
+            <p class="dark:text-gray-400 light:text-gray-600 mb-4">
+              A Telegram bot that moderates group discussions, manages polls,
+              and helps organize educational debates.
+            </p>
+            <div class="flex flex-wrap gap-2 mb-4">
+              <span
+                class="px-2 py-1 dark:bg-blue-900 light:bg-blue-100 dark:text-blue-300 light:text-blue-800 rounded-full text-xs"
+                >Telegram API</span
+              >
+              <span
+                class="px-2 py-1 dark:bg-blue-900 light:bg-blue-100 dark:text-blue-300 light:text-blue-800 rounded-full text-xs"
+                >Python</span
+              >
+              <span
+                class="px-2 py-1 dark:bg-blue-900 light:bg-blue-100 dark:text-blue-300 light:text-blue-800 rounded-full text-xs"
+                >Moderation</span
+              >
+            </div>
+            <div class="flex justify-between">
+              <a
+                href="https://t.me/the_bot_developer"
+                class="text-blue-400 hover:text-blue-300 flex items-center"
+              >
+                <span>Contact for Demo</span>
+                <svg
+                  class="w-4 h-4 ml-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                  ></path>
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="section">
+      <div class="container mx-auto">
+        <h2 class="text-3xl md:text-4xl font-bold mb-16 text-center">
+          Contact <span class="text-blue-400">Me</span>
+        </h2>
+        <div class="flex flex-col md:flex-row gap-10">
+          <div class="md:w-1/2 glass p-8">
+            <h3 class="text-2xl font-semibold mb-6">Get In Touch</h3>
+            <p class="dark:text-gray-300 light:text-gray-700 mb-8">
+              Feel free to contact me for any project or collaboration
+              opportunities.
+            </p>
+
+            <div class="flex items-center mb-6">
+              <div
+                class="w-12 h-12 rounded-full bg-blue-900 flex items-center justify-center mr-4"
+              >
+                <svg
+                  class="w-6 h-6 text-blue-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  ></path>
+                </svg>
+              </div>
+              <div>
+                <h4 class="text-sm dark:text-gray-400 light:text-gray-600">
+                  Email
+                </h4>
+                <p>raaz@example.com</p>
+              </div>
+            </div>
+
+            <div class="flex items-center mb-6">
+              <div
+                class="w-12 h-12 rounded-full bg-blue-900 flex items-center justify-center mr-4"
+              >
+                <svg
+                  class="w-6 h-6 text-blue-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
+                  ></path>
+                </svg>
+              </div>
+              <div>
+                <h4 class="text-sm dark:text-gray-400 light:text-gray-600">
+                  Telegram
+                </h4>
+                <p>@the_bot_developer</p>
+              </div>
+            </div>
+
+            <div class="flex items-center">
+              <div
+                class="w-12 h-12 rounded-full bg-blue-900 flex items-center justify-center mr-4"
+              >
+                <svg
+                  class="w-6 h-6 text-blue-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                  ></path>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                  ></path>
+                </svg>
+              </div>
+              <div>
+                <h4 class="text-sm dark:text-gray-400 light:text-gray-600">
+                  Location
+                </h4>
+                <p>Patna, Bihar, India</p>
+              </div>
+            </div>
+
+            <div class="mt-10">
+              <h4 class="text-lg font-medium mb-4">Connect With Me</h4>
+              <div class="flex space-x-4">
+                <a
+                  href="https://www.instagram.com/code_with_raaz._?igsh=MTloNG1lc2I4OG00bA=="
+                  target="_blank"
+                  class="social-icon w-10 h-10 rounded-full dark:bg-gray-800 light:bg-white flex items-center justify-center hover:bg-blue-900 transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    fill="currentColor"
+                    class="instagram-icon"
+                    viewBox="0 0 16 16"
+                  >
+                    <path
+                      d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0h.003zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.47 2.47 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.478 2.478 0 0 1-.92-.598 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233 0-2.136.008-2.388.046-3.231.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045v.002zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92zm-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217zm0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334z"
+                    />
+                  </svg>
+                </a>
+                <a
+                  href="https://t.me/the_bot_developer"
+                  target="_blank"
+                  class="social-icon w-10 h-10 rounded-full dark:bg-gray-800 light:bg-white flex items-center justify-center hover:bg-blue-900 transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    fill="currentColor"
+                    class="telegram-icon"
+                    viewBox="0 0 16 16"
+                  >
+                    <path
+                      d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.287 5.906c-.778.324-2.334.994-4.666 2.01-.378.15-.577.298-.595.442-.03.243.275.339.69.47l.175.055c.408.133.958.288 1.243.294.26.006.549-.1.868-.32 2.179-1.471 3.304-2.214 3.374-2.23.05-.012.12-.026.166.016.047.041.042.12.037.141-.03.129-1.227 1.241-1.846 1.817-.193.18-.33.307-.358.336a8.154 8.154 0 0 1-.188.186c-.38.366-.664.64.015 1.088.327.216.589.393.85.571.284.194.568.387.936.629.093.06.183.125.27.187.331.236.63.448.997.414.214-.02.435-.22.547-.82.265-1.417.786-4.486.906-5.751a1.426 1.426 0 0 0-.013-.315.337.337 0 0 0-.114-.217.526.526 0 0 0-.31-.093c-.3.005-.763.166-2.984 1.09z"
+                    />
+                  </svg>
+                </a>
+              </div>
+            </div>
+
+            <div
+              class="mt-8 p-4 bg-blue-900 bg-opacity-20 rounded-lg border border-blue-800"
+            >
+              <h4 class="font-medium mb-2 text-blue-400">Quick Response</h4>
+              <p class="text-sm dark:text-gray-300 light:text-gray-700">
+                For fastest response, message me on Telegram:
+                <a
+                  href="https://t.me/the_bot_developer"
+                  class="text-blue-400 hover:underline font-medium"
+                  >@the_bot_developer</a
+                >
+              </p>
+            </div>
+          </div>
+
+          <div class="md:w-1/2 glass p-8">
+            <h3 class="text-2xl font-semibold mb-6">Send Me a Message</h3>
+            <form id="contact-form" class="space-y-6">
+              <div>
+                <label
+                  for="name"
+                  class="block text-sm font-medium dark:text-gray-300 light:text-gray-700 mb-1"
+                  >Name</label
+                >
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  class="w-full px-4 py-3 dark:bg-gray-800 light:bg-white dark:border-gray-700 light:border-gray-300 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white light:text-gray-900"
+                  placeholder="Your Name"
+                  required
+                />
+              </div>
+
+              <div>
+                <label
+                  for="email"
+                  class="block text-sm font-medium dark:text-gray-300 light:text-gray-700 mb-1"
+                  >Email</label
+                >
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  class="w-full px-4 py-3 dark:bg-gray-800 light:bg-white dark:border-gray-700 light:border-gray-300 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white light:text-gray-900"
+                  placeholder="your@email.com"
+                  required
+                />
+              </div>
+
+              <div>
+                <label
+                  for="subject"
+                  class="block text-sm font-medium dark:text-gray-300 light:text-gray-700 mb-1"
+                  >Subject</label
+                >
+                <input
+                  type="text"
+                  id="subject"
+                  name="subject"
+                  class="w-full px-4 py-3 dark:bg-gray-800 light:bg-white dark:border-gray-700 light:border-gray-300 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white light:text-gray-900"
+                  placeholder="Subject"
+                  required
+                />
+              </div>
+
+              <div>
+                <label
+                  for="message"
+                  class="block text-sm font-medium dark:text-gray-300 light:text-gray-700 mb-1"
+                  >Message</label
+                >
+                <textarea
+                  id="message"
+                  name="message"
+                  rows="4"
+                  class="w-full px-4 py-3 dark:bg-gray-800 light:bg-white dark:border-gray-700 light:border-gray-300 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white light:text-gray-900"
+                  placeholder="Your message here..."
+                  required
+                ></textarea>
+              </div>
+
+              <button
+                type="submit"
+                class="w-full py-3 px-6 bg-white text-blue-600 hover:bg-gray-100 font-medium rounded-lg transition-colors shadow-lg"
+              >
+                Send Message
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-8 border-t dark:border-gray-800 light:border-gray-300">
+      <div class="container mx-auto px-4">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+          <div class="mb-4 md:mb-0">
+            <a href="#" class="text-2xl font-bold text-blue-400"
+              >Raaz<span class="dark:text-white light:text-gray-900"
+                >.dev</span
+              ></a
+            >
+            <p class="dark:text-gray-400 light:text-gray-600 mt-2">
+              Web & Telegram Bot Developer
+            </p>
+          </div>
+          <div class="flex space-x-6">
+            <a
+              href="#"
+              class="dark:text-gray-400 light:text-gray-600 hover:text-blue-500"
+              >Home</a
+            >
+            <a
+              href="#about"
+              class="dark:text-gray-400 light:text-gray-600 hover:text-blue-500"
+              >About</a
+            >
+            <a
+              href="#skills"
+              class="dark:text-gray-400 light:text-gray-600 hover:text-blue-500"
+              >Skills</a
+            >
+            <a
+              href="#projects"
+              class="dark:text-gray-400 light:text-gray-600 hover:text-blue-500"
+              >Projects</a
+            >
+            <a
+              href="#contact"
+              class="dark:text-gray-400 light:text-gray-600 hover:text-blue-500"
+              >Contact</a
+            >
+          </div>
+        </div>
+        <div class="mt-8 text-center dark:text-gray-500 light:text-gray-600">
+          <p>&copy; 2023 Raaz. All rights reserved.</p>
+        </div>
+        <div class="mt-4 flex justify-center space-x-6">
+          <a
+            href="https://www.instagram.com/code_with_raaz._?igsh=MTloNG1lc2I4OG00bA=="
+            target="_blank"
+            class="social-icon text-2xl"
+            title="Instagram"
+          >
+            <i class="instagram-icon">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                fill="currentColor"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0h.003zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.47 2.47 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.478 2.478 0 0 1-.92-.598 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233 0-2.136.008-2.388.046-3.231.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045v.002zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92zm-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217zm0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334z"
+                />
+              </svg>
+            </i>
+          </a>
+          <a
+            href="https://t.me/the_bot_developer"
+            target="_blank"
+            class="social-icon text-2xl"
+            title="Telegram"
+          >
+            <i class="telegram-icon">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                fill="currentColor"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.287 5.906c-.778.324-2.334.994-4.666 2.01-.378.15-.577.298-.595.442-.03.243.275.339.69.47l.175.055c.408.133.958.288 1.243.294.26.006.549-.1.868-.32 2.179-1.471 3.304-2.214 3.374-2.23.05-.012.12-.026.166.016.047.041.042.12.037.141-.03.129-1.227 1.241-1.846 1.817-.193.18-.33.307-.358.336a8.154 8.154 0 0 1-.188.186c-.38.366-.664.64.015 1.088.327.216.589.393.85.571.284.194.568.387.936.629.093.06.183.125.27.187.331.236.63.448.997.414.214-.02.435-.22.547-.82.265-1.417.786-4.486.906-5.751a1.426 1.426 0 0 0-.013-.315.337.337 0 0 0-.114-.217.526.526 0 0 0-.31-.093c-.3.005-.763.166-2.984 1.09z"
+                />
+              </svg>
+            </i>
+          </a>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const mobileThemeToggle = document.getElementById('mobile-theme-toggle');
+        const html = document.documentElement;
+
+        function toggleTheme() {
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                html.classList.add('light');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.remove('light');
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Check for saved theme preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            html.classList.remove('dark');
+            html.classList.add('light');
+        }
+
+        themeToggle.addEventListener('click', toggleTheme);
+        mobileThemeToggle.addEventListener('click', toggleTheme);
+
+        // Mobile menu functionality
+        const menuBtn = document.getElementById('menu-btn');
+        const closeMenuBtn = document.getElementById('close-menu');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileLinks = document.querySelectorAll('.mobile-link');
+
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.remove('translate-x-full');
+        });
+
+        closeMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.add('translate-x-full');
+        });
+
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('translate-x-full');
+            });
+        });
+
+        // Scroll animation
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('show');
+                }
+            });
+        });
+
+        const hiddenElements = document.querySelectorAll('.hidden');
+        hiddenElements.forEach((el) => observer.observe(el));
+
+        // Form submission
+        const contactForm = document.getElementById('contact-form');
+        if (contactForm) {
+            contactForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                // Demo form submission
+                const formData = new FormData(contactForm);
+                const name = formData.get('name');
+
+                // Show success message
+                contactForm.innerHTML = `
+                    <div class="text-center py-8">
+                        <svg class="w-16 h-16 text-green-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <h3 class="text-xl font-semibold mb-2">Thank you, ${name}!</h3>
+                        <p class="dark:text-gray-300 light:text-gray-700">Your message has been sent successfully.</p>
+                        <p class="dark:text-gray-400 light:text-gray-600 mt-4">I'll get back to you soon.</p>
+                    </div>
+                `;
+            });
+        }
+
+        // 3D Background with Three.js
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Create programmer with laptop
+        function createProgrammer() {
+            const programmerGroup = new THREE.Group();
+
+            // Desk
+            const deskGeometry = new THREE.BoxGeometry(3, 0.1, 1.5);
+            const deskMaterial = new THREE.MeshBasicMaterial({ color: 0x5c4033 });
+            const desk = new THREE.Mesh(deskGeometry, deskMaterial);
+            desk.position.y = -0.8;
+            programmerGroup.add(desk);
+
+            // Laptop base
+            const laptopBaseGeometry = new THREE.BoxGeometry(0.8, 0.05, 0.6);
+            const laptopMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 });
+            const laptopBase = new THREE.Mesh(laptopBaseGeometry, laptopMaterial);
+            laptopBase.position.y = -0.7;
+            programmerGroup.add(laptopBase);
+
+            // Laptop screen
+            const laptopScreenGeometry = new THREE.BoxGeometry(0.8, 0.5, 0.02);
+            const laptopScreenMaterial = new THREE.MeshBasicMaterial({ color: 0x222222 });
+            const laptopScreen = new THREE.Mesh(laptopScreenGeometry, laptopScreenMaterial);
+            laptopScreen.position.y = -0.4;
+            laptopScreen.position.z = -0.3;
+            laptopScreen.rotation.x = -Math.PI / 6;
+            programmerGroup.add(laptopScreen);
+
+            // Screen content (blue glow)
+            const screenContentGeometry = new THREE.PlaneGeometry(0.75, 0.45);
+            const screenContentMaterial = new THREE.MeshBasicMaterial({
+                color: 0x3b82f6,
+                transparent: true,
+                opacity: 0.9
+            });
+            const screenContent = new THREE.Mesh(screenContentGeometry, screenContentMaterial);
+            screenContent.position.y = -0.4;
+            screenContent.position.z = -0.29;
+            screenContent.rotation.x = -Math.PI / 6;
+            programmerGroup.add(screenContent);
+
+            // Person (simplified)
+            const headGeometry = new THREE.SphereGeometry(0.15, 16, 16);
+            const bodyGeometry = new THREE.CylinderGeometry(0.15, 0.2, 0.5, 8);
+            const personMaterial = new THREE.MeshBasicMaterial({ color: 0x555555 });
+
+            const head = new THREE.Mesh(headGeometry, personMaterial);
+            head.position.y = 0.1;
+            head.position.z = 0.2;
+
+            const body = new THREE.Mesh(bodyGeometry, personMaterial);
+            body.position.y = -0.2;
+            body.position.z = 0.2;
+
+            programmerGroup.add(head);
+            programmerGroup.add(body);
+
+            // Position the entire group
+            programmerGroup.position.set(0, -1, -5);
+            programmerGroup.rotation.y = Math.PI / 8;
+
+            return programmerGroup;
+        }
+
+        const programmer = createProgrammer();
+        scene.add(programmer);
+
+        // Create particles
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 500;
+
+        const posArray = new Float32Array(particlesCount * 3);
+
+        for(let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 15;
+        }
+      (function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'939eaf47736da70b',t:'MTc0NjI2NDA1MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();
+    </script>
+  </body>
+</html>
+
