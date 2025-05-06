@@ -1470,51 +1470,40 @@
         }
       (function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'939eaf47736da70b',t:'MTc0NjI2NDA1MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();
   
-  
-  document.addEventListener("DOMContentLoaded", function () {
-    const form = document.getElementById("contact-form");
+  document.getElementById("contact-form").addEventListener("submit", function (e) {
+    e.preventDefault(); // Page reload hone se roke
 
-    form.addEventListener("submit", function (e) {
-      e.preventDefault();
+    const token = "7872751361:AAH_U7HjUUIrAZWTeF3w8XV0DAPHPph1w18"; // BotFather se mila token
+    const chat_id = "5260776753"; // Jahan message bhejna hai
 
-      const botToken = "7872751361:AAE4K0bhTM7g9Dy6rDnXrQXCq7QfYfkjlGY";
-      const chatId = "5260776753";
+    // Form ke data lo
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const message = document.getElementById("message").value;
 
-      const name = form.elements["name"].value;
-      const email = form.elements["email"].value;
-      const subject = form.elements["subject"].value;
-      const messageText = form.elements["message"].value;
+    // Telegram ke liye final message format
+    const text = `📩 New Contact Form Submission:\n\n👤 Name: ${name}\n📧 Email: ${email}\n📝 Message: ${message}`;
 
-      const message = `
-New Message From Website:
-Name: ${name}
-Email: ${email}
-Subject: ${subject}
-Message: ${messageText}
-      `;
-
-      fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: message
-        })
+    // Telegram API call
+    fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chat_id,
+        text: text
       })
-      .then(response => {
-        if (response.ok) {
-          alert("Message sent successfully!");
-          form.reset();
-        } else {
-          alert("Failed to send message.");
-        }
-      })
-      .catch(error => {
-        console.error("Error:", error);
-        alert("Something went wrong.");
-      });
+    })
+    .then(response => {
+      if (response.ok) {
+        alert("Message sent successfully!");
+        document.getElementById("contact-form").reset(); // Form reset
+      } else {
+        alert("Failed to send message.");
+      }
+    })
+    .catch(error => {
+      console.error("Error:", error);
+      alert("Error sending message.");
     });
   });
 </script>
