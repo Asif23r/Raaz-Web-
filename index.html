@@ -1513,6 +1513,42 @@
         }
       (function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'939eaf47736da70b',t:'MTc0NjI2NDA1MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();
   
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("contact-form");
+
+    if (form) {
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const name = form.querySelector('input[name="name"]').value;
+        const message = form.querySelector('input[name="message"]').value;
+
+        const botToken = "7872751361:AAE4K0bhTM7g9Dy6rDnXrQXCq7QfYfkjlGY"; // <-- Replace this
+        const chatId = "5260776753";     // <-- Replace this
+        const text = `New Message from ${name}:\n${message}`;
+
+        fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: text
+          })
+        })
+        .then(res => res.json())
+        .then(data => {
+          alert("Message sent on Telegram!");
+          form.reset(); // Clear form after send
+        })
+        .catch(err => {
+          alert("Failed to send message.");
+          console.error(err);
+        });
+      });
+    }
+  });
 </script>
   </body>
 </html>
