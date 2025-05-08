@@ -1312,10 +1312,8 @@
 
     <script>
         // Theme toggle functionality
+    const themeToggle = document.getElementById('theme-toggle');
         const mobileThemeToggle = document.getElementById('mobile-theme-toggle');
-if (mobileThemeToggle) {
-  mobileThemeToggle.addEventListener('click', toggleTheme);
-}
         function toggleTheme() {
             if (html.classList.contains('dark')) {
                 html.classList.remove('dark');
